@@ -1,0 +1,1242 @@
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>amirai.com | امیرحسن سجادی - امنیت سایبری و ربات تلگرام</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Orbitron:wght@700;900&family=Vazirmatn:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #030508;
+            --card-bg: rgba(8, 13, 22, 0.78);
+            --primary: #00ff88;
+            --secondary: #00d4ff;
+            --accent: #ff0055;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --border-glow: rgba(0, 255, 136, 0.35);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Vazirmatn', sans-serif;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        .mono {
+            font-family: 'Fira Code', monospace;
+        }
+
+        .cyber-font {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Background Canvases */
+        #code-rain-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -2;
+            opacity: 0.38;
+            pointer-events: none;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* HUD Scanline & Vignette */
+        .cyber-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at center, transparent 40%, rgba(3, 5, 8, 0.85) 100%),
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%);
+            background-size: 100% 100%, 100% 4px;
+            z-index: 999;
+            pointer-events: none;
+        }
+
+        /* Floating Live Code HUD */
+        .live-code-hud {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(5, 10, 18, 0.82);
+            border: 1px solid rgba(0, 255, 136, 0.25);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+            color: var(--primary);
+            z-index: 90;
+            pointer-events: none;
+            backdrop-filter: blur(6px);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.08);
+            direction: ltr;
+            text-align: left;
+            max-width: 310px;
+        }
+
+        .hud-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--secondary);
+            font-size: 0.7rem;
+            margin-bottom: 4px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+            padding-bottom: 3px;
+        }
+
+        .pulse-dot {
+            width: 7px;
+            height: 7px;
+            background: var(--primary);
+            border-radius: 50%;
+            animation: pulse 1.2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(0.8); }
+        }
+
+        /* Navbar */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(3, 5, 8, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0, 255, 136, 0.15);
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.35rem;
+            font-weight: 900;
+            color: var(--primary);
+            text-shadow: 0 0 12px rgba(0, 255, 136, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            letter-spacing: 1px;
+        }
+
+        .logo span {
+            color: var(--secondary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.8rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-main);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.3s, text-shadow 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+            text-shadow: 0 0 8px rgba(0, 255, 136, 0.6);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 5%;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding-top: 80px;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 780px;
+            z-index: 2;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.45rem 1.1rem;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: 50px;
+            color: var(--primary);
+            font-size: 0.85rem;
+            margin-bottom: 1.2rem;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.25);
+        }
+
+        .brand-hero-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(3.6rem, 8vw, 6.2rem);
+            font-weight: 900;
+            line-height: 1.05;
+            margin-bottom: 0.6rem;
+            letter-spacing: 4px;
+            text-transform: lowercase;
+            background: linear-gradient(90deg, #00ff88 0%, #00d4ff 50%, #00ff88 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 22px rgba(0, 255, 136, 0.45));
+            animation: shineText 4s linear infinite;
+            direction: ltr;
+            display: inline-block;
+        }
+
+        @keyframes shineText {
+            to {
+                background-position: 200% center;
+            }
+        }
+
+        .sub-author-title {
+            font-size: clamp(1.3rem, 3vw, 1.9rem);
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .typing-wrapper {
+            font-size: 1.25rem;
+            color: var(--secondary);
+            margin-bottom: 1.5rem;
+            min-height: 2rem;
+            font-weight: 600;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 3px;
+            background-color: var(--primary);
+            animation: blink 0.8s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .hero p {
+            color: var(--text-muted);
+            font-size: 1.08rem;
+            margin-bottom: 2.2rem;
+            max-width: 630px;
+            background: rgba(3, 5, 8, 0.55);
+            padding: 1rem;
+            border-right: 3px solid var(--primary);
+            border-radius: 4px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.85rem 1.8rem;
+            border-radius: 6px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-family: 'Vazirmatn', sans-serif;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #030508;
+            border: 1px solid var(--primary);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.35);
+        }
+
+        .btn-primary:hover {
+            background: transparent;
+            color: var(--primary);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.65);
+        }
+
+        .btn-outline {
+            background: rgba(0, 212, 255, 0.08);
+            color: var(--secondary);
+            border: 1px solid var(--secondary);
+        }
+
+        .btn-outline:hover {
+            background: rgba(0, 212, 255, 0.2);
+            box-shadow: 0 0 22px rgba(0, 212, 255, 0.45);
+        }
+
+        /* Section Styles */
+        section {
+            padding: 95px 0;
+        }
+
+        .section-header {
+            margin-bottom: 3rem;
+        }
+
+        .section-tag {
+            color: var(--primary);
+            font-size: 0.9rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-title {
+            font-size: 2.1rem;
+            font-weight: 800;
+        }
+
+        /* Interactive Terminal */
+        .terminal-window {
+            background: rgba(6, 10, 16, 0.92);
+            border: 1px solid var(--border-glow);
+            border-radius: 10px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 25px rgba(0, 255, 136, 0.15);
+            overflow: hidden;
+            max-width: 850px;
+            margin: 0 auto;
+        }
+
+        .terminal-header {
+            background: #101724;
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .terminal-dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .dot.red { background: #ff5f56; }
+        .dot.yellow { background: #ffbd2e; }
+        .dot.green { background: #27c93f; }
+
+        .terminal-title {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        .terminal-body {
+            padding: 1.5rem;
+            height: 330px;
+            overflow-y: auto;
+            font-size: 0.92rem;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .terminal-line {
+            margin-bottom: 0.6rem;
+            word-wrap: break-word;
+        }
+
+        .prompt {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .cmd-output {
+            color: #cbd5e1;
+            margin-top: 0.25rem;
+            line-height: 1.6;
+        }
+
+        .terminal-input-line {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        #terminal-input {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.92rem;
+            width: 100%;
+            outline: none;
+        }
+
+        .quick-cmds {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            flex-wrap: wrap;
+            direction: ltr;
+        }
+
+        .cmd-chip {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            color: var(--primary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .cmd-chip:hover {
+            background: var(--primary);
+            color: #000;
+        }
+
+        /* 3D Tilt Cards Grid */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .cyber-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(0, 212, 255, 0.22);
+            border-radius: 12px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            transition: transform 0.15s ease-out, border-color 0.3s, box-shadow 0.3s;
+            transform-style: preserve-3d;
+            position: relative;
+        }
+
+        .cyber-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.18);
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: inline-block;
+            transform: translateZ(20px);
+        }
+
+        .cyber-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.75rem;
+            color: #fff;
+            transform: translateZ(15px);
+        }
+
+        .cyber-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tech-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .tag {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.65rem;
+            background: rgba(0, 212, 255, 0.12);
+            color: var(--secondary);
+            border-radius: 4px;
+            border: 1px solid rgba(0, 212, 255, 0.25);
+        }
+
+        /* Skills Section */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .skill-box {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+        }
+
+        .skill-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .progress-bg {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            width: 0%;
+            transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        /* Contact Box */
+        .contact-box {
+            background: var(--card-bg);
+            border: 1px solid var(--border-glow);
+            border-radius: 12px;
+            padding: 2.5rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background: rgba(3, 5, 8, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 6px;
+            color: #fff;
+            font-family: 'Vazirmatn', sans-serif;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .social-card {
+            background: rgba(3, 5, 8, 0.75);
+            padding: 1.2rem;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 212, 255, 0.25);
+            margin-bottom: 1rem;
+            transition: 0.3s;
+        }
+
+        .social-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .social-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--secondary);
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 0.5rem;
+            direction: ltr;
+        }
+
+        .social-link:hover {
+            color: var(--primary);
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            background: rgba(3, 5, 8, 0.9);
+        }
+
+        /* Toast Notification */
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--primary);
+            color: #030508;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 700;
+            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.4);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        #toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .contact-box { grid-template-columns: 1fr; }
+            .live-code-hud { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cyber-overlay"></div>
+    <canvas id="code-rain-canvas"></canvas>
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Live Code Execution HUD -->
+    <div class="live-code-hud">
+        <div class="hud-header">
+            <span class="pulse-dot"></span>
+            <span>AMIRAI // LIVE_DAEMON.PY</span>
+        </div>
+        <div id="hud-code-line">Initializing bot_engine &amp; sec_scanner...</div>
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+        <a href="#" class="logo cyber-font">
+            <span>&lt;</span>amirai<span>.com/&gt;</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="#about">ترمینال من</a></li>
+            <li><a href="#projects">تخصص و پروژه‌ها</a></li>
+            <li><a href="#skills">مهارت‌ها</a></li>
+            <li><a href="#contact">ارتباط در تلگرام</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="badge mono">
+                    <span>●</span> AMIRAI.COM // ۴ سال تجربه عملی در امنیت و ربات‌سازی
+                </div>
+                <h1 class="brand-hero-title">amirai</h1>
+                <div class="sub-author-title">
+                    <span>امیرحسن سجادی</span>
+                    <span style="color: var(--primary); font-size: 1rem;" class="mono">[amirai.com]</span>
+                </div>
+                <div class="typing-wrapper">
+                    <span id="typewriter"></span><span class="cursor">&nbsp;</span>
+                </div>
+                <p>
+                    متخصص تست نفوذ، امنیت سایبری و توسعه‌دهنده ربات‌های پیشرفته تلگرامی. با ۴ سال سابقه مستمر در حوزه امنیت و ۲ سال تجربه برنامه‌نویسی تخصصی پایتون، متمرکز بر ارزیابی امنیتی اپلیکیشن‌ها، تحلیل رفتار بدافزارها و مهندسی ربات‌های خودکار.
+                </p>
+                <div class="btn-group">
+                    <a href="https://t.me/s_official1" target="_blank" class="btn btn-primary">ارتباط مستقیم در تلگرام</a>
+                    <a href="https://t.me/+bXTSNczsQIRmMWJk" target="_blank" class="btn btn-outline">عضویت در کانال تلگرام</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Terminal Section -->
+    <section id="about">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag mono">// INTERACTIVE_SHELL</span>
+                <h2 class="section-title">ترمینال تعاملی amirai</h2>
+            </div>
+
+            <div class="terminal-window">
+                <div class="terminal-header">
+                    <div class="terminal-dots">
+                        <div class="dot red"></div>
+                        <div class="dot yellow"></div>
+                        <div class="dot green"></div>
+                    </div>
+                    <div class="terminal-title mono">root@amirai.com: ~ (zsh)</div>
+                    <div style="width: 40px;"></div>
+                </div>
+                <div class="terminal-body mono" id="terminal-output">
+                    <div class="terminal-line">
+                        <span style="color: var(--secondary);">Welcome to AMIRAI Security &amp; Bot Environment (amirai.com).</span><br>
+                        Type <span style="color: var(--primary);">'help'</span> or click the commands below to explore Amirhasan Sajjadi's profile.
+                    </div>
+                </div>
+                <div class="quick-cmds mono">
+                    <button class="cmd-chip" onclick="runCommand('whoami')">whoami</button>
+                    <button class="cmd-chip" onclick="runCommand('skills')">skills</button>
+                    <button class="cmd-chip" onclick="runCommand('projects')">projects</button>
+                    <button class="cmd-chip" onclick="runCommand('contact')">contact</button>
+                    <button class="cmd-chip" onclick="runCommand('clear')">clear</button>
+                </div>
+                <div style="padding: 0 1.5rem 1rem 1.5rem; direction: ltr;">
+                    <div class="terminal-input-line mono">
+                        <span class="prompt">root@amirai.com:~#</span>
+                        <input type="text" id="terminal-input" placeholder="Enter command..." autocomplete="off">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects & Focus Areas Section -->
+    <section id="projects">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag mono">// CORE_OPERATIONS</span>
+                <h2 class="section-title">حوزه‌های فعالیت و پروژه‌ها</h2>
+            </div>
+
+            <div class="grid-3">
+                <!-- Card 1 -->
+                <div class="cyber-card tilt-card">
+                    <div class="card-icon mono">[01]</div>
+                    <h3>تست نفوذ و امنیت اپلیکیشن‌ها</h3>
+                    <p>بررسی آسیب‌پذیری‌های احراز هویت، تحلیل امنیت نشست‌ها (Session Security) و ارزیابی نفوذپذیری پیام‌رسان‌ها و اپلیکیشن‌های ایرانی.</p>
+                    <div class="tech-tags mono">
+                        <span class="tag">App Security</span>
+                        <span class="tag">Pentesting</span>
+                        <span class="tag">Auth Audit</span>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="cyber-card tilt-card">
+                    <div class="card-icon mono">[02]</div>
+                    <h3>توسعه ربات‌های هوشمند تلگرام</h3>
+                    <p>طراحی و پیاده‌سازی ربات‌های مدیریتی، امنیتی، ضد اسپم و مبتنی بر هوش مصنوعی با سرعت پردازش بالا با استفاده از کتابخانه‌های مدرن پایتون.</p>
+                    <div class="tech-tags mono">
+                        <span class="tag">Python</span>
+                        <span class="tag">Aiogram / Telethon</span>
+                        <span class="tag">Telegram API</span>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="cyber-card tilt-card">
+                    <div class="card-icon mono">[03]</div>
+                    <h3>تحلیل بدافزار و مهندسی معکوس</h3>
+                    <p>بررسی ساختار کدهای مخرب، تحلیل رفتار ویروس‌ها در محیط ایزوله (Sandbox) و شبیه‌سازی سناریوهای حمله جهت ایمن‌سازی سیستم‌ها.</p>
+                    <div class="tech-tags mono">
+                        <span class="tag">Malware Analysis</span>
+                        <span class="tag">Payload Research</span>
+                        <span class="tag">Cyber Defense</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag mono">// TECHNICAL_ARSENAL</span>
+                <h2 class="section-title">مهارت‌ها و تجربه فنی</h2>
+            </div>
+
+            <div class="skills-grid">
+                <div class="skill-box">
+                    <div class="skill-info">
+                        <span>امنیت سایبری و تست نفوذ (۴ سال تجربه)</span>
+                        <span class="mono" style="color: var(--primary);">95%</span>
+                    </div>
+                    <div class="progress-bg">
+                        <div class="progress-fill" data-width="95%"></div>
+                    </div>
+                </div>
+
+                <div class="skill-box">
+                    <div class="skill-info">
+                        <span>برنامه‌نویسی پایتون (۲ سال تجربه تخصصی)</span>
+                        <span class="mono" style="color: var(--primary);">90%</span>
+                    </div>
+                    <div class="progress-bg">
+                        <div class="progress-fill" data-width="90%"></div>
+                    </div>
+                </div>
+
+                <div class="skill-box">
+                    <div class="skill-info">
+                        <span>ساخت ربات‌های تلگرامی و اتوماسیون</span>
+                        <span class="mono" style="color: var(--primary);">94%</span>
+                    </div>
+                    <div class="progress-bg">
+                        <div class="progress-fill" data-width="94%"></div>
+                    </div>
+                </div>
+
+                <div class="skill-box">
+                    <div class="skill-info">
+                        <span>تحلیل امنیت اپلیکیشن‌ها و بدافزارها</span>
+                        <span class="mono" style="color: var(--primary);">88%</span>
+                    </div>
+                    <div class="progress-bg">
+                        <div class="progress-fill" data-width="88%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag mono">// SECURE_COMMUNICATION</span>
+                <h2 class="section-title">ارتباط مستقیم با امیرحسن سجادی</h2>
+            </div>
+
+            <div class="contact-box">
+                <div>
+                    <h3 style="margin-bottom: 1rem; color: var(--primary);">کانال‌ها و راه‌های ارتباطی</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+                        برای سفارش ساخت ربات تلگرامی، مشاوره امنیت سایبری و بررسی پروژه می‌توانید مستقیماً از طریق تلگرام با من در ارتباط باشید.
+                    </p>
+
+                    <div class="social-card">
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">آیدی تلگرام شخصی (پاسخگویی مستقیم):</div>
+                        <a href="https://t.me/s_official1" target="_blank" class="social-link mono">
+                            <span>https://t.me/s_official1</span>
+                            <span>↗</span>
+                        </a>
+                        <button onclick="copyLink('https://t.me/s_official1')" class="btn btn-outline mono" style="font-size: 0.78rem; padding: 0.35rem 0.8rem; margin-top: 0.7rem;">
+                            کپی لینک آیدی
+                        </button>
+                    </div>
+
+                    <div class="social-card">
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">کانال رسمی تلگرام (آموزش‌ها و ابزارها):</div>
+                        <a href="https://t.me/+bXTSNczsQIRmMWJk" target="_blank" class="social-link mono">
+                            <span>https://t.me/+bXTSNczsQIRmMWJk</span>
+                            <span>↗</span>
+                        </a>
+                        <button onclick="copyLink('https://t.me/+bXTSNczsQIRmMWJk')" class="btn btn-outline mono" style="font-size: 0.78rem; padding: 0.35rem 0.8rem; margin-top: 0.7rem;">
+                            کپی لینک کانال
+                        </button>
+                    </div>
+                </div>
+
+                <form onsubmit="handleContact(event)">
+                    <div class="form-group">
+                        <label>نام یا آیدی تلگرام شما</label>
+                        <input type="text" class="form-control" required placeholder="@username">
+                    </div>
+                    <div class="form-group">
+                        <label>موضوع درخواست</label>
+                        <input type="text" class="form-control" required placeholder="ساخت ربات تلگرام / تست نفوذ / مشاوره">
+                    </div>
+                    <div class="form-group">
+                        <label>توضیحات پیام</label>
+                        <textarea class="form-control" rows="4" required placeholder="جزئیات پروژه یا پیام خود را بنویسید..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">ارسال پیام</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p class="mono">AMIRAI.COM // Developed by Amirhasan Sajjadi | © 2026</p>
+    </footer>
+
+    <div id="toast">لینک با موفقیت کپی شد!</div>
+
+    <script>
+        // ==========================================
+        // 1. Live Code & Cyber Matrix Rain Background
+        // ==========================================
+        const rainCanvas = document.getElementById('code-rain-canvas');
+        const rainCtx = rainCanvas.getContext('2d');
+
+        function resizeRainCanvas() {
+            rainCanvas.width = window.innerWidth;
+            rainCanvas.height = window.innerHeight;
+        }
+        resizeRainCanvas();
+
+        const codeTokens = [
+            'import telethon', 'async def bot()', '0x7F4A', 'nmap -sV',
+            'payload.exec()', 'ssh root@amirai', 'sudo apt', 'def exploit():',
+            'bot.polling()', 'token=API_KEY', '101101', '010010',
+            'import socket', 'ssl_bypass()', 'hashlib.sha256', 'aiogram.Dispatcher',
+            'GET /api/v2', '200 OK', 'ENCRYPT_AES', 'AMIRAI_SEC'
+        ];
+
+        const fontSize = 14;
+        let columns = Math.floor(rainCanvas.width / 85);
+        let drops = Array(columns).fill(1).map(() => Math.random() * -50);
+
+        function drawCodeRain() {
+            rainCtx.fillStyle = 'rgba(3, 5, 8, 0.14)';
+            rainCtx.fillRect(0, 0, rainCanvas.width, rainCanvas.height);
+
+            rainCtx.font = `${fontSize}px "Fira Code", monospace`;
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = codeTokens[Math.floor(Math.random() * codeTokens.length)];
+                const isCyan = i % 3 === 0;
+                rainCtx.fillStyle = isCyan ? 'rgba(0, 212, 255, 0.65)' : 'rgba(0, 255, 136, 0.7)';
+                
+                const x = i * 85;
+                const y = drops[i] * 22;
+
+                rainCtx.fillText(text, x, y);
+
+                if (y > rainCanvas.height && Math.random() > 0.96) {
+                    drops[i] = 0;
+                }
+                drops[i] += 0.45;
+            }
+        }
+        setInterval(drawCodeRain, 55);
+
+        // Live HUD Code Ticker
+        const hudSnippets = [
+            "bot = TelegramClient('amirai_session', api_id, api_hash)",
+            "scanning target ports [22, 80, 443, 8080]... OPEN",
+            "@dp.message_handler(commands=['start', 'hack'])",
+            "analyzing apk_manifest.xml & session_tokens...",
+            "def encrypt_payload(data, key): return AES.new(key)",
+            "amirai.com // firewall_status: ACTIVE [SHIELD_ON]"
+        ];
+        let hudIdx = 0;
+        const hudEl = document.getElementById('hud-code-line');
+        setInterval(() => {
+            hudIdx = (hudIdx + 1) % hudSnippets.length;
+            hudEl.textContent = hudSnippets[hudIdx];
+        }, 2800);
+
+        // ==========================================
+        // 2. Three.js 3D Cyber Core & Orbital Rings
+        // ==========================================
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({
+            canvas: document.getElementById('bg-canvas'),
+            alpha: true,
+            antialias: true
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // Main Wireframe Icosahedron
+        const geometry = new THREE.IcosahedronGeometry(10, 2);
+        const material = new THREE.MeshBasicMaterial({
+            color: 0x00ff88,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.22
+        });
+        const sphere = new THREE.Mesh(geometry, material);
+        scene.add(sphere);
+
+        // Inner Cyan Core
+        const innerGeo = new THREE.OctahedronGeometry(5.5, 1);
+        const innerMat = new THREE.MeshBasicMaterial({
+            color: 0x00d4ff,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.35
+        });
+        const innerSphere = new THREE.Mesh(innerGeo, innerMat);
+        scene.add(innerSphere);
+
+        // Orbital Cyber Ring
+        const ringGeo = new THREE.TorusGeometry(14.5, 0.08, 16, 100);
+        const ringMat = new THREE.MeshBasicMaterial({
+            color: 0x00d4ff,
+            transparent: true,
+            opacity: 0.35
+        });
+        const cyberRing = new THREE.Mesh(ringGeo, ringMat);
+        cyberRing.rotation.x = Math.PI / 2.4;
+        scene.add(cyberRing);
+
+        // Floating Data Particles
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 650;
+        const posArray = new Float32Array(particlesCount * 3);
+
+        for (let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 65;
+        }
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.16,
+            color: 0x00ff88,
+            transparent: true,
+            opacity: 0.65
+        });
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+
+        camera.position.z = 26;
+
+        let mouseX = 0;
+        let mouseY = 0;
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX / window.innerWidth) - 0.5;
+            mouseY = (event.clientY / window.innerHeight) - 0.5;
+        });
+
+        function animate3D() {
+            requestAnimationFrame(animate3D);
+
+            sphere.rotation.y += 0.0025;
+            sphere.rotation.x += 0.0012;
+
+            innerSphere.rotation.y -= 0.005;
+            innerSphere.rotation.z += 0.003;
+
+            cyberRing.rotation.z += 0.004;
+            cyberRing.rotation.y = Math.sin(Date.now() * 0.001) * 0.3;
+
+            particlesMesh.rotation.y -= 0.0008;
+
+            camera.position.x += (mouseX * 9 - camera.position.x) * 0.05;
+            camera.position.y += (-mouseY * 9 - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+
+            renderer.render(scene, camera);
+        }
+        animate3D();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            resizeRainCanvas();
+            columns = Math.floor(rainCanvas.width / 85);
+            drops = Array(columns).fill(1).map(() => Math.random() * -50);
+        });
+
+        // ==========================================
+        // 3. Typewriter Effect
+        // ==========================================
+        const phrases = [
+            "تست نفوذ و امنیت سایبری (۴ سال تجربه)",
+            "توسعه ربات‌های هوشمند تلگرامی با پایتون",
+            "تحلیل امنیت اپلیکیشن‌ها و مهندسی بدافزار",
+            "amirai.com // امنیت و اتوماسیون پیشرفته"
+        ];
+        let phraseIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        const typewriterEl = document.getElementById('typewriter');
+
+        function typeEffect() {
+            const currentPhrase = phrases[phraseIndex];
+            if (isDeleting) {
+                typewriterEl.textContent = currentPhrase.substring(0, charIndex - 1);
+                charIndex--;
+            } else {
+                typewriterEl.textContent = currentPhrase.substring(0, charIndex + 1);
+                charIndex++;
+            }
+
+            let speed = isDeleting ? 35 : 75;
+
+            if (!isDeleting && charIndex === currentPhrase.length) {
+                speed = 2000;
+                isDeleting = true;
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                phraseIndex = (phraseIndex + 1) % phrases.length;
+                speed = 400;
+            }
+            setTimeout(typeEffect, speed);
+        }
+        typeEffect();
+
+        // ==========================================
+        // 4. Interactive Terminal Logic
+        // ==========================================
+        const terminalInput = document.getElementById('terminal-input');
+        const terminalOutput = document.getElementById('terminal-output');
+
+        const commands = {
+            help: `Available commands:<br>
+                   - <span style="color:#00ff88">whoami</span> : اطلاعات هویتی امیرحسن سجادی و دامنه amirai.com<br>
+                   - <span style="color:#00ff88">skills</span> : مهارت‌های پایتون، تست نفوذ و تحلیل بدافزار<br>
+                   - <span style="color:#00ff88">projects</span> : پروژه‌های ربات تلگرامی و امنیت اپلیکیشن<br>
+                   - <span style="color:#00ff88">contact</span> : دریافت لینک مستقیم تلگرام و کانال<br>
+                   - <span style="color:#00ff88">clear</span> : پاکسازی صفحه ترمینال`,
+            whoami: `Brand: <span style="color:#00ff88">amirai.com</span><br>
+                     Name: Amirhasan Sajjadi (امیرحسن سجادی)<br>
+                     Role: Penetration Tester, Cyber Security Researcher &amp; Telegram Bot Developer<br>
+                     Experience: 4 Years in Cyber Security | 2 Years in Python Development`,
+            skills: `[+] Programming: Python (2 Years Experience - Telethon, Aiogram, Scapy)<br>
+                     [+] Cyber Security: Penetration Testing &amp; Vulnerability Assessment (4 Years)<br>
+                     [+] App &amp; Messenger Security: Security Analysis of Iranian Apps &amp; Rubika<br>
+                     [+] Malware Research: Virus Construction Concepts &amp; Behavior Analysis`,
+            projects: `[1] Advanced Telegram Bots (Anti-Spam, AI Integration, Automation)<br>
+                       [2] Iranian Application &amp; Messenger Security Auditing<br>
+                       [3] Custom Payload &amp; Malware Research Environment`,
+            contact: `Telegram ID: <a href="https://t.me/s_official1" target="_blank" style="color:#00d4ff;">https://t.me/s_official1</a><br>
+                      Telegram Channel: <a href="https://t.me/+bXTSNczsQIRmMWJk" target="_blank" style="color:#00d4ff;">https://t.me/+bXTSNczsQIRmMWJk</a><br>
+                      Domain: amirai.com`
+        };
+
+        function runCommand(cmd) {
+            const cleanCmd = cmd.trim().toLowerCase();
+            if (!cleanCmd) return;
+
+            if (cleanCmd === 'clear') {
+                terminalOutput.innerHTML = '';
+                return;
+            }
+
+            const cmdLine = document.createElement('div');
+            cmdLine.className = 'terminal-line';
+            cmdLine.innerHTML = `<span class="prompt">root@amirai.com:~#</span> ${cmd}`;
+            terminalOutput.appendChild(cmdLine);
+
+            const outputLine = document.createElement('div');
+            outputLine.className = 'cmd-output';
+            if (commands[cleanCmd]) {
+                outputLine.innerHTML = commands[cleanCmd];
+            } else {
+                outputLine.innerHTML = `<span style="color:#ff0055">Command not found:</span> '${cleanCmd}'. Type 'help' for available commands.`;
+            }
+            terminalOutput.appendChild(outputLine);
+            terminalOutput.scrollTop = terminalOutput.scrollHeight;
+        }
+
+        terminalInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                runCommand(terminalInput.value);
+                terminalInput.value = '';
+            }
+        });
+
+        // ==========================================
+        // 5. 3D Tilt Effect on Cards
+        // ==========================================
+        document.querySelectorAll('.tilt-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = ((y - centerY) / centerY) * -8;
+                const rotateY = ((x - centerX) / centerX) * 8;
+
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+            });
+        });
+
+        // ==========================================
+        // 6. Animate Skill Bars on Scroll
+        // ==========================================
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const fills = entry.target.querySelectorAll('.progress-fill');
+                    fills.forEach(fill => {
+                        fill.style.width = fill.getAttribute('data-width');
+                    });
+                }
+            });
+        }, { threshold: 0.3 });
+
+        const skillsSection = document.getElementById('skills');
+        if (skillsSection) observer.observe(skillsSection);
+
+        // ==========================================
+        // 7. Copy Link & Contact Form Handler
+        // ==========================================
+        function copyLink(linkText) {
+            navigator.clipboard.writeText(linkText).then(() => {
+                showToast("لینک تلگرام با موفقیت کپی شد!");
+            });
+        }
+
+        function handleContact(e) {
+            e.preventDefault();
+            showToast("پیام شما ثبت شد. برای پاسخ سریع‌تر در تلگرام پیام دهید.");
+            e.target.reset();
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
